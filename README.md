@@ -48,3 +48,9 @@ The original `MAGIC-main_download` snapshot supplied CommNet, while the other ba
 All 546 retained Python files passed a syntax compile check. A training run was not performed: the local environment lacked `visdom` and the project-specific runtime dependencies. Runtime output paths and common checkpoint/log formats are covered by `.gitignore`.
 
 The included experiment-level `LICENSE` and `README.md` files retain the upstream licensing and citation information.
+
+## Citation
+
+If you reuse this repository or its communication protocol code, please cite:
+
+> X. Zhang, J. Yu and Z. Zhong, "Learning Efficient Communication Protocols for Multi-Agent Reinforcement Learning," in *IEEE Transactions on Machine Learning in Communications and Networking*, vol. 4, pp. 1335–1352, 2026.
