@@ -1,0 +1,24 @@
+#!/bin/bash
+export OMP_NUM_THREADS=1
+
+python -u run_baselines.py \
+  --env_name predator_prey \
+  --nagents 5 \
+  --dim 10 \
+  --max_steps 40 \
+  --vision 1 \
+  --nprocesses 16 \
+  --num_epochs 500 \
+  --epoch_size 10 \
+  --comm_passes 1 \
+  --hid_size 128 \
+  --value_coeff 0.01 \
+  --detach_gap 10 \
+  --lrate 0.001 \
+  --ic3net \
+  --recurrent \
+  --save \
+  --seed 0 \
+  | tee train_pp_one_round_IC3Net_test_0701_2.log
+
+

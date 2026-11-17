@@ -1,0 +1,37 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Experiment outputs
+saved/
+logs/
+plots/
+wandb/
+result from ssh/
+*.log
+*.out
+*.err
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.npy
+*.npz
+
+# Generated reports and figures
+results*.png
+*.pdf
+*.pptx
+
+# Editor and OS metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.Identifier
+

@@ -1,0 +1,54 @@
+\begin{algorithm}[!t]
+\label{algo:EC-MARL}
+\caption{Protocol Learning of MARL: Centralized Training with Decentralized Execution}
+\begin{algorithmic}[1]
+
+\STATE {\bfseries Initialize:} Parameters $\boldsymbol{\theta} = \{\boldsymbol{\theta}_\text{obs}, \boldsymbol{\theta}_\text{msg}, \boldsymbol{\theta}_\text{topo}, \boldsymbol{\theta}_\text{aggr}, \boldsymbol{\theta}_\text{hsu}, \boldsymbol{\theta}_\pi, \boldsymbol{\theta}_Q\}$, replay buffer $\mathcal{D}$
+
+\STATE \texttt{/* Phase 1: Centralized Training */}
+\WHILE{not converged}
+    \STATE Collect observation batch $\mathbf{o}^t$ from environment with global state $s_t$
+    \STATE Generate initial hidden states: $\mathbf{h}^{t^{(0)}} = f_{\boldsymbol{\theta}_\text{obs}}^o(\mathbf{o}^t)$
+    
+    \FOR{communication round $l = 1$ to $L_1$}
+        \STATE Get the initial message vector $\mathbf{m}^{*t^{(l)}} = f_{\boldsymbol{\theta}_\text{msg}}^m(\mathbf{h}^{t^{(l-1)}})$ 
+        \STATE Get the communication topology $G^{t^{(l)}} = f_{\boldsymbol{\theta}_\text{topo}}^\text{topo}(\mathbf{h}^{t^{(l-1)}})$ 
+        \STATE Get the aggregated message $\mathbf{m}^{t^{(l)}} = f_{\boldsymbol{\theta}_\text{aggr}}^\text{aggr}(\mathbf{m}^{*t^{(l)}}, G^{t^{(l)}})$ 
+        \STATE Get the updated hidden state $\mathbf{h}^{t^{(l)}} = f_{\boldsymbol{\theta}_\text{hsu}}^\text{hsu}(\mathbf{h}^{t^{(l-1)}}, \mathbf{m}^{t^{(l)}})$ 
+    \ENDFOR
+    
+    \STATE $\mathbf{a}^t = f_{\boldsymbol{\theta}_\pi}^{\pi}(\mathbf{h}^{t^{(L_1)}})$ 
+    \STATE Execute $\mathbf{a}^t$, observe rewards $\mathbf{r}^t$ and next state $s_{t+1}$
+    \STATE Store transition in $\mathcal{D}$ and sample mini-batch
+    \STATE $\mathcal{L}_t = l_{\mathbf{a}^t} + w_q l_{Q_t}$ \COMMENT{Compute loss with critic $Q(s_t, \mathbf{a}^t) = f_{\boldsymbol{\theta}_Q}^{Q}(s_t, \mathbf{a}^t)$}
+    \vspace{2mm}
+    \STATE Update parameters: $\boldsymbol{\theta} \leftarrow \boldsymbol{\theta} - \eta \nabla_{\boldsymbol{\theta}} \mathcal{L}_t$
+\ENDWHILE
+
+\STATE \texttt{/* Phase 2: Decentralized Execution */}
+\FOR{each timestep $t$ during execution}
+    \FOR{each agent $i \in \{0,1,...,N-1\}$ \textbf{in parallel}}
+        \STATE Receive observation $o_i^t$ and encode: $h_i^{t^{(0)}} = f_{\boldsymbol{\theta}_\text{obs}}^o(o_i^t)$
+    \ENDFOR
+    
+    \FOR{communication round $l = 1$ to $L_2$}
+        \FOR{each agent $i \in \{0,1,...,N-1\}$ \textbf{in parallel}}
+            \STATE Get the initial message $m_i^{*t^{(l)}} = f_{\boldsymbol{\theta}_\text{msg}}^m(h_i^{t^{(l-1)}})$ 
+            \STATE Get the communication topology $G_i^{t^{(l)}} = f_{\boldsymbol{\theta}_\text{topo}}^\text{topo}(h_i^{t^{(l-1)}})$ 
+        \ENDFOR
+        
+        \FOR{each agent $i \in \{0,1,...,N-1\}$ \textbf{in parallel}}
+            \STATE Receive messages $\{m_j^{*t^{(l)}}\}_{j \in \mathcal{N}_i^{t^{(l)}}}$ where $\mathcal{N}_i^{t^{(l)}} = \{j \mid G_{j,i}^{t^{(l)}} = 1\}$
+            \STATE Get the aggregated message $m_i^{t^{(l)}} = f_{\boldsymbol{\theta}_\text{aggr}}^\text{aggr}(\{m_j^{*t^{(l)}}\}_{j \in \mathcal{N}_i^{t^{(l)}}}, G_i^{t^{(l)}})$ 
+            \STATE Get the updated hidden state $h_i^{t^{(l)}} = f_{\boldsymbol{\theta}_\text{hsu}}^\text{hsu}(h_i^{t^{(l-1)}}, m_i^{t^{(l)}})$ 
+        \ENDFOR
+    \ENDFOR
+    
+    \FOR{each agent $i \in \{0,1,...,N-1\}$ \textbf{in parallel}}
+        \STATE $a_i^t \sim f_{\boldsymbol{\theta}_\pi}^{\pi}(h_i^{t^{(L_2)}})$ 
+    \ENDFOR
+\ENDFOR
+
+\end{algorithmic}
+\end{algorithm}
+

@@ -1,0 +1,32 @@
+#!/bin/bash
+# MAGIC + Shapley Only on SMAC v2
+# 地图: 10gen_terran (动态生成 Terran, 5v5, episode_limit=200)
+# max_steps=150：给足时间让战斗自然结束，确保 battle_won 信号能触发
+export OMP_NUM_THREADS=1
+
+DATE=$(date +%Y%m%d)
+SAVE_DIR=./saved/smacv2_magic_shapley_only_5v5_seed1_${DATE}
+LOG_FILE=./new_env_scripts/shapley_only/smac_v2/train_smacv2_magic_shapley_only_5v5_seed1_${DATE}.log
+
+python -u baselines/train_with_shapley_only.py \
+  --env_name smac_v2 \
+  --smac_map 10gen_terran \
+  --nagents 5 \
+  --model_type magic \
+  --nprocesses 1 \
+  --num_epochs 2000 \
+  --epoch_size 10 \
+  --max_steps 150 \
+  --hid_size 128 \
+  --lrate 0.0005 \
+  --value_coeff 0.01 \
+  --gamma 0.99 \
+  --normalize_rewards \
+  --seed 1 \
+  --save_dir ${SAVE_DIR} \
+  --save_every 100 \
+  --shapley_interval 100 \
+  --shapley_episodes 20 \
+  --topology_threshold 0.1 \
+  --cuda \
+  2>&1 | tee ${LOG_FILE}
