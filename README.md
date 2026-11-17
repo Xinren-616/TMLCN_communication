@@ -1,57 +1,50 @@
-# TMLCN / MAGIC communication baselines
+# TMLCN communication experiments
 
-This repository contains cleaned research code for communication-based multi-agent reinforcement learning. Runtime artifacts (checkpoints, logs, generated plots, caches, and saved experiment data) are intentionally excluded.
+Research code for communication baselines and loss-adjust experiments based on the MAGIC / IC3Net training framework. This repository contains source code and launch scripts; training logs, checkpoints, generated figures, and caches are excluded.
 
-## Repository layout
+## Layout
 
-```text
-baselines/                  One-round, no loss-adjust baselines
-  commnet/
-  magic/
-  gacomm/
-  ic3net/
-  tarmac/
-  bvme/
-  gacg/
-loss_adjust/                Loss-adjust experiment implementations
-  one_round/
-  two_round/
-  three_round/
-communication_rounds/       No-loss-adjust multi-round BVME/GACG variants
-  two_round/bvme_gacg/
-  three_round/bvme_gacg/
+| Directory | Contents |
+| --- | --- |
+| `baselines/{commnet,magic,gacomm,ic3net,tarmac,bvme,gacg}` | One-round communication baselines without loss adjust |
+| `loss_adjust/one_round/{ic3net,tarmac}` | Existing one-round loss-adjust experiments |
+| `loss_adjust/two_round/tarmac` | Existing two-round loss-adjust experiment |
+| `loss_adjust/three_round/{commnet,magic,gacomm,ic3net,tarmac}` | Existing three-round loss-adjust experiments |
+| `communication_rounds/{two_round,three_round}/bvme_gacg` | Existing multi-round BVME/GACG experiments without loss adjust |
+
+Each experiment is a self-contained snapshot of its model, trainer, environment wrappers, and scripts. The directory matrix reflects the implementations present in the source material; an absent combination has not been claimed or generated.
+
+## Quick start
+
+Use a Linux environment with Bash and Python. The original project documentation in each experiment directory describes its dependencies, including PyTorch, Gym, Visdom, and the included IC3Net environment package. Install the environment package for the chosen experiment from its root:
+
+```bash
+cd baselines/bvme
+python -m pip install -e envs/ic3net-envs
 ```
 
-Each algorithm directory is self-contained because the original experiments evolved as independent snapshots. This preserves the exact trainer, environment wrappers, and command-line behavior used for that experiment instead of forcing incompatible snapshots into one shared package.
+Install the remaining Python dependencies appropriate to your Python/PyTorch environment before training. The historical documentation mentions PyTorch 1.5; compatibility with newer releases has not been verified here.
 
-## Baseline entry points
+Run a baseline launcher **from the directory containing `run_baselines.py`**, because the scripts use relative paths:
 
-Baseline training uses either `main.py` (MAGIC) or `baselines/run_baselines.py` (the other communication baselines). The task launchers are the retained `train_*.sh` files. In particular:
+```bash
+cd baselines/bvme/baselines
+bash train_tj_easy.sh
+```
 
-- BVME: `baselines/bvme/baselines/train_tj_easy.sh`
-- GACG: `baselines/gacg/baselines/train_tj_easy.sh`
-- IC3Net: `baselines/ic3net/baselines/train_tj_easy.sh`
-- TarMAC: `baselines/tarmac/baselines/train_tj_easy.sh`
-- GA-Comm: `baselines/gacomm/baselines/train_tj_easy.sh`
+For GACG, substitute `baselines/gacg/baselines`. The same pattern applies to CommNet, GA-Comm, IC3Net, and TarMAC. MAGIC's launcher instead runs `main.py` from the experiment root:
 
-Run a launcher from its algorithm root so its relative paths resolve correctly.
+```bash
+cd baselines/magic
+bash train_tj_easy.sh
+```
 
-## Outputs
+Launchers for other environments and communication rounds are located alongside their respective training entry points. Review the command-line flags and seeds in a script before running it. BVME and GACG share a compatible runner, so their code snapshots contain both implementations; the dedicated launchers select the named algorithm with `--bvme` or `--gacg`.
 
-Training recreates output folders such as `saved/`, `logs/`, and `plots/`. These paths, model checkpoints, Python caches, log files, and common experiment-result formats are ignored by Git. Do not commit generated artifacts; keep reproducible configuration in the launcher scripts instead.
+## Source and validation
 
-## Historical directory mapping
+The original `MAGIC-main_download` snapshot supplied CommNet, while the other baseline snapshots supplied MAGIC, GA-Comm, IC3Net, and TarMAC. BVME and GACG were separated from `TMLCN/two_baseline_no_LA/one_round`; the multi-round versions were preserved under `communication_rounds/`. Source code and launchers were retained, and a pre-existing duplicate `cmap` keyword in CommNet's analysis script was corrected.
 
-The old download-oriented names were normalized as follows:
+All 546 retained Python files passed a syntax compile check. A training run was not performed: the local environment lacked `visdom` and the project-specific runtime dependencies. Runtime output paths and common checkpoint/log formats are covered by `.gitignore`.
 
-| Old directory | New directory |
-| --- | --- |
-| `MAGIC-main_download` | `baselines/commnet` |
-| `MAGIC-main_download_baseline` | `baselines/magic` |
-| `MAGIC-main_download_baseline_GAcomm` | `baselines/gacomm` |
-| `MAGIC-main_download_baseline_IC3Net` | `baselines/ic3net` |
-| `MAGIC-main_download_baseline_TarMAC` | `baselines/tarmac` |
-| integrated one-round BVME implementation | `baselines/bvme` |
-| integrated one-round GACG implementation | `baselines/gacg` |
-| `TMLCN/Loss_Adjust_*` | `loss_adjust/{one,two,three}_round` |
-
+The included experiment-level `LICENSE` and `README.md` files retain the upstream licensing and citation information.
